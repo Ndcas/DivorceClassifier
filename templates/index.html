@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="Divorce Prediction Classifier - Dự đoán khả năng ly hôn dựa trên các yếu tố hôn nhân">
+    <title>Divorce Classifier - Dự Đoán Ly Hôn</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+    <div class="container">
+        <!-- HEADER -->
+        <header class="header">
+            <h1>Divorce Classifier</h1>
+            <p>Nhập thông tin hôn nhân để dự đoán khả năng ly hôn</p>
+        </header>
+
+        <!-- FORM -->
+        <section class="form-section">
+            <h2>Nhập Dữ Liệu</h2>
+            <form id="predictForm" method="POST" action="/predict">
+                <div class="form-grid">
+                    <!-- age_at_marriage -->
+                    <div class="form-group">
+                        <label for="age_at_marriage">Tuổi khi kết hôn</label>
+                        <input type="number" id="age_at_marriage" name="age_at_marriage" placeholder="VD: 25" required
+                            min="15" max="60">
+                    </div>
+
+                    <!-- marriage_duration_years -->
+                    <div class="form-group">
+                        <label for="marriage_duration_years">Số năm kết hôn</label>
+                        <input type="number" id="marriage_duration_years" name="marriage_duration_years"
+                            placeholder="VD: 5" required min="0">
+                    </div>
+
+                    <!-- num_children -->
+                    <div class="form-group">
+                        <label for="num_children">Số con</label>
+                        <input type="number" id="num_children" name="num_children" placeholder="VD: 2" required min="0">
+                    </div>
+
+                    <!-- education_level -->
+                    <div class="form-group">
+                        <label for="education_level">Trình độ học vấn</label>
+                        <select id="education_level" name="education_level" required>
+                            <option value="No Formal Education">Không có bằng cấp</option>
+                            <option value="High School">Trung học phổ thông</option>
+                            <option value="Bachelor">Cử nhân</option>
+                            <option value="Master">Thạc sĩ</option>
+                            <option value="PhD">Tiến sĩ</option>
+                        </select>
+                    </div>
+
+                    <!-- employment_status -->
+                    <div class="form-group">
+                        <label for="employment_status">Tình trạng việc làm</label>
+                        <select id="employment_status" name="employment_status" required>
+                            <option value="Full-time">Toàn thời gian</option>
+                            <option value="Part-time">Bán thời gian</option>
+                            <option value="Unemployed">Thất nghiệp</option>
+                            <option value="Homemaker">Nội trợ</option>
+                        </select>
+                    </div>
+
+                    <!-- combined_income -->
+                    <div class="form-group">
+                        <label for="combined_income">Thu nhập kết hợp</label>
+                        <input type="number" id="combined_income" name="combined_income" placeholder="VD: 50000"
+                            required min="0">
+                    </div>
+
+                    <!-- religious_compatibility -->
+                    <div class="form-group">
+                        <label for="religious_compatibility">Tương thích tôn giáo</label>
+                        <select id="religious_compatibility" name="religious_compatibility" required>
+                            <option value="Same Religion">Cùng tôn giáo</option>
+                            <option value="Different Religion">Khác tôn giáo</option>
+                            <option value="Not Religious">Không theo tôn giáo</option>
+                        </select>
+                    </div>
+
+                    <!-- cultural_background_match -->
+                    <div class="form-group">
+                        <label for="cultural_background_match">Phù hợp văn hóa</label>
+                        <select id="cultural_background_match" name="cultural_background_match" required>
+                            <option value="1">Có</option>
+                            <option value="0">Không</option>
+                        </select>
+                    </div>
+
+                    <!-- communication_score -->
+                    <div class="form-group">
+                        <label for="communication_score">Điểm giao tiếp (1-10)</label>
+                        <input type="number" id="communication_score" name="communication_score" placeholder="VD: 7.5"
+                            required min="1" max="10" step="0.01">
+                    </div>
+
+                    <!-- conflict_frequency -->
+                    <div class="form-group">
+                        <label for="conflict_frequency">Tần suất xung đột</label>
+                        <input type="number" id="conflict_frequency" name="conflict_frequency" placeholder="VD: 3"
+                            required min="0">
+                    </div>
+
+                    <!-- conflict_resolution_style -->
+                    <div class="form-group">
+                        <label for="conflict_resolution_style">Phong cách giải quyết xung đột</label>
+                        <select id="conflict_resolution_style" name="conflict_resolution_style" required>
+                            <option value="Collaborative">Hợp tác</option>
+                            <option value="Aggressive">Hung hăng</option>
+                            <option value="Avoidant">Né tránh</option>
+                            <option value="Passive">Thụ động</option>
+                        </select>
+                    </div>
+
+                    <!-- financial_stress_level -->
+                    <div class="form-group">
+                        <label for="financial_stress_level">Mức căng thẳng tài chính (1-10)</label>
+                        <input type="number" id="financial_stress_level" name="financial_stress_level"
+                            placeholder="VD: 5.0" required min="1" max="10" step="0.01">
+                    </div>
+
+                    <!-- mental_health_issues -->
+                    <div class="form-group">
+                        <label for="mental_health_issues">Vấn đề sức khỏe tâm thần</label>
+                        <select id="mental_health_issues" name="mental_health_issues" required>
+                            <option value="1">Có</option>
+                            <option value="0">Không</option>
+                        </select>
+                    </div>
+
+                    <!-- infidelity_occurred -->
+                    <div class="form-group">
+                        <label for="infidelity_occurred">Có ngoại tình</label>
+                        <select id="infidelity_occurred" name="infidelity_occurred" required>
+                            <option value="1">Có</option>
+                            <option value="0">Không</option>
+                        </select>
+                    </div>
+
+                    <!-- counseling_attended -->
+                    <div class="form-group">
+                        <label for="counseling_attended">Đã tham gia tư vấn</label>
+                        <select id="counseling_attended" name="counseling_attended" required>
+                            <option value="1">Có</option>
+                            <option value="0">Không</option>
+                        </select>
+                    </div>
+
+                    <!-- social_support -->
+                    <div class="form-group">
+                        <label for="social_support">Hỗ trợ xã hội (1-10)</label>
+                        <input type="number" id="social_support" name="social_support" placeholder="VD: 6.5" required
+                            min="1" max="10" step="0.01">
+                    </div>
+
+                    <!-- shared_hobbies_count -->
+                    <div class="form-group">
+                        <label for="shared_hobbies_count">Số sở thích chung</label>
+                        <input type="number" id="shared_hobbies_count" name="shared_hobbies_count" placeholder="VD: 3"
+                            required min="0">
+                    </div>
+
+                    <!-- marriage_type -->
+                    <div class="form-group">
+                        <label for="marriage_type">Loại hôn nhân</label>
+                        <select id="marriage_type" name="marriage_type" required>
+                            <option value="Love">Tình yêu</option>
+                            <option value="Arranged">Sắp đặt</option>
+                            <option value="Other">Khác</option>
+                        </select>
+                    </div>
+
+                    <!-- pre_marital_cohabitation -->
+                    <div class="form-group">
+                        <label for="pre_marital_cohabitation">Sống chung trước hôn nhân</label>
+                        <select id="pre_marital_cohabitation" name="pre_marital_cohabitation" required>
+                            <option value="1">Có</option>
+                            <option value="0">Không</option>
+                        </select>
+                    </div>
+
+                    <!-- domestic_violence_history -->
+                    <div class="form-group">
+                        <label for="domestic_violence_history">Lịch sử bạo lực gia đình</label>
+                        <select id="domestic_violence_history" name="domestic_violence_history" required>
+                            <option value="1">Có</option>
+                            <option value="0">Không</option>
+                        </select>
+                    </div>
+
+                    <!-- trust_score -->
+                    <div class="form-group">
+                        <label for="trust_score">Điểm tin tưởng (1-10)</label>
+                        <input type="number" id="trust_score" name="trust_score" placeholder="VD: 7.0" required min="1"
+                            max="10" step="0.01">
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-predict" id="btnPredict">🔮 Dự Đoán</button>
+                </div>
+            </form>
+        </section>
+
+        <!-- HISTORY TABLE -->
+        <section class="history-section">
+            <div class="history-header">
+                <h2>Lịch Sử Dự Đoán</h2>
+                <button class="btn-clear" id="btnClear" onclick="clearHistory()">🗑️ Xóa lịch sử</button>
+            </div>
+            <div class="table-wrapper">
+                <table class="history-table" id="historyTable">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Thời gian</th>
+                            <th>Tuổi KH</th>
+                            <th>Số năm</th>
+                            <th>Số con</th>
+                            <th>Học vấn</th>
+                            <th>Việc làm</th>
+                            <th>Thu nhập</th>
+                            <th>Tôn giáo</th>
+                            <th>Văn hóa</th>
+                            <th>Giao tiếp</th>
+                            <th>Xung đột</th>
+                            <th>Giải quyết XĐ</th>
+                            <th>Tài chính</th>
+                            <th>Tâm thần</th>
+                            <th>Ngoại tình</th>
+                            <th>Tư vấn</th>
+                            <th>Xã hội</th>
+                            <th>Sở thích</th>
+                            <th>Loại HN</th>
+                            <th>Sống chung</th>
+                            <th>Bạo lực</th>
+                            <th>Tin tưởng</th>
+                            <th>Kết quả</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyBody">
+                    </tbody>
+                </table>
+            </div>
+            <div class="empty-state" id="emptyState" style="display:none;">
+                <div class="icon">📋</div>
+                <p>Chưa có lịch sử dự đoán nào</p>
+            </div>
+        </section>
+    </div>
+
+    <!-- POPUP MODAL -->
+    <div class="modal-overlay" id="resultModal">
+        <div class="modal-content">
+            <div class="result-icon" id="resultIcon"></div>
+            <h3 id="resultTitle"></h3>
+            <p id="resultMessage"></p>
+            <button class="btn-close-modal" onclick="closeModal()">Đóng</button>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script>
+        // SSR: handle prediction result from Jinja2 context
+        document.addEventListener('DOMContentLoaded', function () {
+            {% if prediction is defined and prediction is not none %}
+            const submittedData = {
+                {% for col in ["age_at_marriage", "marriage_duration_years", "num_children",
+                "education_level", "employment_status", "combined_income",
+                "religious_compatibility", "cultural_background_match",
+                "communication_score", "conflict_frequency", "conflict_resolution_style",
+                "financial_stress_level", "mental_health_issues", "infidelity_occurred",
+                "counseling_attended", "social_support", "shared_hobbies_count",
+                "marriage_type", "pre_marital_cohabitation", "domestic_violence_history",
+                "trust_score"] %}
+            "{{ col }}": "{{ data[col] }}",
+                {% endfor %}
+            };
+
+        const prediction = {{ prediction }};
+
+        savePrediction(submittedData, prediction);
+        showModal(prediction);
+        {% endif %}
+
+        loadHistory();
+        });
+    </script>
+</body>
+
+</html>

@@ -45,19 +45,19 @@ def predict():
         "domestic_violence_history",
         "trust_score"
     ]
-    input_data = {}
+    inputData = {}
     for col in columns:
         val = request.form.get(col)
         try:
             if "." in val:
-                input_data[col] = float(val)
+                inputData[col] = float(val)
             else:
-                input_data[col] = int(val)
+                inputData[col] = int(val)
         except (ValueError, TypeError):
-            input_data[col] = val
-    input_df = pandas.DataFrame([input_data])
+            inputData[col] = val
+    input_df = pandas.DataFrame([inputData])
     prediction = model.predict(input_df)[0]
-    return render_template("index.html", prediction=prediction)
+    return render_template("index.html", data=inputData, prediction=prediction)
 
 if __name__ == "__main__":
     app.run(host=HOST, port=PORT)

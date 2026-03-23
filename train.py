@@ -118,10 +118,7 @@ def train():
     sv = getSVC()
     print("Đang lấy mô hình MLP")
     mlp = getMLPCLassifier()
-    voting = VotingClassifier(
-        estimators=[("kNeighbor", kNeighbor), ("decisionTree", decisionTree), ("sv", sv), ("mlp", mlp)],
-        voting="soft"
-    )
+    voting = VotingClassifier(estimators=[("kNeighbor", kNeighbor), ("decisionTree", decisionTree), ("sv", sv), ("mlp", mlp)])
     model = Pipeline(steps=[
         ("preprocessor", preprocessor),
         ("classifier", voting)
