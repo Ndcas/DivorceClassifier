@@ -59,4 +59,5 @@ def predict():
     prediction = model.predict(input_df)[0]
     return render_template("index.html", prediction=prediction)
 
-app.run(host=HOST, port=PORT)
+if __name__ == "__main__":
+    app.run(host=HOST, port=PORT)

@@ -133,5 +133,5 @@ def train():
     joblib.dump(model, MODEL_PATH)
     print(f"Đã huấn luyện mô hình, lưu tại {MODEL_PATH}")
 
-
-train()
+if __name__ == "__main__":
+    train()
