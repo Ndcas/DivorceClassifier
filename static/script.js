@@ -1,15 +1,26 @@
 const COLUMNS = [
-    "age_at_marriage", "marriage_duration_years", "num_children",
-    "education_level", "employment_status", "combined_income",
-    "religious_compatibility", "cultural_background_match",
-    "communication_score", "conflict_frequency", "conflict_resolution_style",
-    "financial_stress_level", "mental_health_issues", "infidelity_occurred",
-    "counseling_attended", "social_support", "shared_hobbies_count",
-    "marriage_type", "pre_marital_cohabitation", "domestic_violence_history",
+    "age_at_marriage",
+    "marriage_duration_years",
+    "num_children",
+    "education_level",
+    "employment_status",
+    "combined_income",
+    "religious_compatibility",
+    "cultural_background_match",
+    "communication_score",
+    "conflict_frequency",
+    "conflict_resolution_style",
+    "financial_stress_level",
+    "mental_health_issues",
+    "infidelity_occurred",
+    "counseling_attended",
+    "social_support", "shared_hobbies_count",
+    "marriage_type",
+    "pre_marital_cohabitation",
+    "domestic_violence_history",
     "trust_score"
 ];
 
-// Vietnamese translation maps
 const TRANSLATE = {
     education_level: {
         'No Formal Education': 'Không có bằng cấp',
@@ -43,8 +54,12 @@ const TRANSLATE = {
 };
 
 const BINARY_FIELDS = [
-    'cultural_background_match', 'mental_health_issues', 'infidelity_occurred',
-    'counseling_attended', 'pre_marital_cohabitation', 'domestic_violence_history'
+    'cultural_background_match',
+    'mental_health_issues',
+    'infidelity_occurred',
+    'counseling_attended',
+    'pre_marital_cohabitation',
+    'domestic_violence_history'
 ];
 
 function translateValue(field, value) {
@@ -57,28 +72,23 @@ function translateValue(field, value) {
     return value;
 }
 
-// Load history from sessionStorage on page load
+
 function loadHistory() {
     const history = JSON.parse(sessionStorage.getItem('predictionHistory') || '[]');
     const tbody = document.getElementById('historyBody');
     const emptyState = document.getElementById('emptyState');
-
     tbody.innerHTML = '';
-
     if (history.length === 0) {
         emptyState.style.display = 'block';
         return;
     }
-
     emptyState.style.display = 'none';
-
     history.forEach((entry, index) => {
         const tr = document.createElement('tr');
         const prediction = entry.prediction;
         const badgeClass = prediction === 1 ? 'badge-danger' : 'badge-success';
         const badgeText = prediction === 1 ? 'Ly hôn' : 'Không ly hôn';
         const d = entry.data;
-
         tr.innerHTML = `
             <td>${index + 1}</td>
             <td>${entry.timestamp || '—'}</td>
@@ -109,12 +119,10 @@ function loadHistory() {
     });
 }
 
-// Save prediction to sessionStorage
 function savePrediction(data, prediction) {
     const history = JSON.parse(sessionStorage.getItem('predictionHistory') || '[]');
     const now = new Date();
     const timestamp = now.toLocaleString('vi-VN');
-
     history.push({
         timestamp: timestamp,
         data: data,
@@ -124,13 +132,11 @@ function savePrediction(data, prediction) {
     sessionStorage.setItem('predictionHistory', JSON.stringify(history));
 }
 
-// Show result popup
 function showModal(prediction) {
     const modal = document.getElementById('resultModal');
     const icon = document.getElementById('resultIcon');
     const title = document.getElementById('resultTitle');
     const message = document.getElementById('resultMessage');
-
     if (prediction === 1) {
         icon.textContent = '💔';
         title.textContent = 'Dự đoán: Ly Hôn';
@@ -142,21 +148,16 @@ function showModal(prediction) {
         title.style.color = 'var(--accent-success)';
         message.textContent = 'Dựa trên dữ liệu bạn cung cấp, mô hình dự đoán không có khả năng ly hôn.';
     }
-
     modal.classList.add('active');
 }
 
-// Close modal
 function closeModal() {
     document.getElementById('resultModal').classList.remove('active');
 }
-
-// Close modal on overlay click
 document.getElementById('resultModal').addEventListener('click', function (e) {
     if (e.target === this) closeModal();
 });
 
-// Clear history
 function clearHistory() {
     sessionStorage.removeItem('predictionHistory');
     loadHistory();

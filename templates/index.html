@@ -30,21 +30,22 @@
                     <!-- age_at_marriage -->
                     <div class="form-group">
                         <label for="age_at_marriage">Tuổi khi kết hôn</label>
-                        <input type="number" id="age_at_marriage" name="age_at_marriage" placeholder="VD: 25" required
-                            min="15" max="60">
+                        <input type="number" id="age_at_marriage" name="age_at_marriage" placeholder="Ví dụ: 25"
+                            required min="15" max="60">
                     </div>
 
                     <!-- marriage_duration_years -->
                     <div class="form-group">
                         <label for="marriage_duration_years">Số năm kết hôn</label>
                         <input type="number" id="marriage_duration_years" name="marriage_duration_years"
-                            placeholder="VD: 5" required min="0">
+                            placeholder="Ví dụ: 5" required min="0">
                     </div>
 
                     <!-- num_children -->
                     <div class="form-group">
                         <label for="num_children">Số con</label>
-                        <input type="number" id="num_children" name="num_children" placeholder="VD: 2" required min="0">
+                        <input type="number" id="num_children" name="num_children" placeholder="Ví dụ: 2" required
+                            min="0">
                     </div>
 
                     <!-- education_level -->
@@ -72,8 +73,8 @@
 
                     <!-- combined_income -->
                     <div class="form-group">
-                        <label for="combined_income">Thu nhập kết hợp</label>
-                        <input type="number" id="combined_income" name="combined_income" placeholder="VD: 50000"
+                        <label for="combined_income">Tổng thu nhập (USD)</label>
+                        <input type="number" id="combined_income" name="combined_income" placeholder="Ví dụ: 50000"
                             required min="0">
                     </div>
 
@@ -98,16 +99,16 @@
 
                     <!-- communication_score -->
                     <div class="form-group">
-                        <label for="communication_score">Điểm giao tiếp (1-10)</label>
-                        <input type="number" id="communication_score" name="communication_score" placeholder="VD: 7.5"
-                            required min="1" max="10" step="0.01">
+                        <label for="communication_score">Điểm giao tiếp (1 - 10)</label>
+                        <input type="number" id="communication_score" name="communication_score"
+                            placeholder="Ví dụ: 1.23" required min="1" max="10" step="0.01">
                     </div>
 
                     <!-- conflict_frequency -->
                     <div class="form-group">
-                        <label for="conflict_frequency">Tần suất xung đột</label>
-                        <input type="number" id="conflict_frequency" name="conflict_frequency" placeholder="VD: 3"
-                            required min="0">
+                        <label for="conflict_frequency">Tần suất xung đột (0 - 9)</label>
+                        <input type="number" id="conflict_frequency" name="conflict_frequency" placeholder="Ví dụ: 3"
+                            required min="0" max="9">
                     </div>
 
                     <!-- conflict_resolution_style -->
@@ -123,14 +124,14 @@
 
                     <!-- financial_stress_level -->
                     <div class="form-group">
-                        <label for="financial_stress_level">Mức căng thẳng tài chính (1-10)</label>
+                        <label for="financial_stress_level">Mức độ căng thẳng tài chính (1 - 10)</label>
                         <input type="number" id="financial_stress_level" name="financial_stress_level"
-                            placeholder="VD: 5.0" required min="1" max="10" step="0.01">
+                            placeholder="Ví dụ: 1.23" required min="1" max="10" step="0.01">
                     </div>
 
                     <!-- mental_health_issues -->
                     <div class="form-group">
-                        <label for="mental_health_issues">Vấn đề sức khỏe tâm thần</label>
+                        <label for="mental_health_issues">Vấn đề sức khỏe tinh thần</label>
                         <select id="mental_health_issues" name="mental_health_issues" required>
                             <option value="1">Có</option>
                             <option value="0">Không</option>
@@ -157,16 +158,16 @@
 
                     <!-- social_support -->
                     <div class="form-group">
-                        <label for="social_support">Hỗ trợ xã hội (1-10)</label>
-                        <input type="number" id="social_support" name="social_support" placeholder="VD: 6.5" required
-                            min="1" max="10" step="0.01">
+                        <label for="social_support">Hỗ trợ xã hội (1 - 10)</label>
+                        <input type="number" id="social_support" name="social_support" placeholder="Ví dụ: 1.23"
+                            required min="1" max="10" step="0.01">
                     </div>
 
                     <!-- shared_hobbies_count -->
                     <div class="form-group">
                         <label for="shared_hobbies_count">Số sở thích chung</label>
-                        <input type="number" id="shared_hobbies_count" name="shared_hobbies_count" placeholder="VD: 3"
-                            required min="0">
+                        <input type="number" id="shared_hobbies_count" name="shared_hobbies_count"
+                            placeholder="Ví dụ: 3" required min="0">
                     </div>
 
                     <!-- marriage_type -->
@@ -199,9 +200,9 @@
 
                     <!-- trust_score -->
                     <div class="form-group">
-                        <label for="trust_score">Điểm tin tưởng (1-10)</label>
-                        <input type="number" id="trust_score" name="trust_score" placeholder="VD: 7.0" required min="1"
-                            max="10" step="0.01">
+                        <label for="trust_score">Điểm tin tưởng (1 - 10)</label>
+                        <input type="number" id="trust_score" name="trust_score" placeholder="Ví dụ: 1.23" required
+                            min="1" max="10" step="0.01">
                     </div>
                 </div>
 
@@ -223,7 +224,7 @@
                         <tr>
                             <th>#</th>
                             <th>Thời gian</th>
-                            <th>Tuổi KH</th>
+                            <th>Tuổi kết hôn</th>
                             <th>Số năm</th>
                             <th>Số con</th>
                             <th>Học vấn</th>
@@ -233,16 +234,16 @@
                             <th>Văn hóa</th>
                             <th>Giao tiếp</th>
                             <th>Xung đột</th>
-                            <th>Giải quyết XĐ</th>
-                            <th>Tài chính</th>
-                            <th>Tâm thần</th>
+                            <th>Giải quyết xung đột</th>
+                            <th>Áp lực tài chính</th>
+                            <th>Vấn đề tinh thần</th>
                             <th>Ngoại tình</th>
                             <th>Tư vấn</th>
                             <th>Xã hội</th>
                             <th>Sở thích</th>
-                            <th>Loại HN</th>
-                            <th>Sống chung</th>
-                            <th>Bạo lực</th>
+                            <th>Loại hôn nhân</th>
+                            <th>Sống chung trước hôn nhân</th>
+                            <th>Bạo lực gia đình</th>
                             <th>Tin tưởng</th>
                             <th>Kết quả</th>
                         </tr>
@@ -270,7 +271,6 @@
 
     <script src="{{ url_for('static', filename='script.js') }}"></script>
     <script>
-        // SSR: handle prediction result from Jinja2 context
         document.addEventListener('DOMContentLoaded', function () {
             {% if prediction is defined and prediction is not none %}
             const submittedData = {
