@@ -265,6 +265,9 @@
             <div class="result-icon" id="resultIcon"></div>
             <h3 id="resultTitle"></h3>
             <p id="resultMessage"></p>
+            <div id="modelDetails"
+                style="margin-top: 20px; font-size: 0.95em; text-align: left; background: transparent; padding: 0 10px;">
+            </div>
             <button class="btn-close-modal" onclick="closeModal()">Đóng</button>
         </div>
     </div>
@@ -287,9 +290,10 @@
             };
 
         const prediction = {{ prediction }};
+        const modelPreds = {{ model_preds | tojson | safe }};
 
-        savePrediction(submittedData, prediction);
-        showModal(prediction);
+        savePrediction(submittedData, prediction, modelPreds);
+        showModal(prediction, modelPreds);
         {% endif %}
 
         loadHistory();

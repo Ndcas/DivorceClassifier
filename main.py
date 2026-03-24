@@ -10,7 +10,12 @@ MODEL_PATH = os.getenv("MODEL_PATH")
 HOST = os.getenv("HOST")
 PORT = int(os.getenv("PORT"))
 
-model = joblib.load(MODEL_PATH)
+MODEL_DIR = os.path.dirname(MODEL_PATH)
+
+knn_model = joblib.load(os.path.join(MODEL_DIR, "knn.pkl"))
+dt_model = joblib.load(os.path.join(MODEL_DIR, "dt.pkl"))
+svc_model = joblib.load(os.path.join(MODEL_DIR, "svc.pkl"))
+mlp_model = joblib.load(os.path.join(MODEL_DIR, "mlp.pkl"))
 
 app = Flask(__name__)
 
@@ -56,8 +61,20 @@ def predict():
         except (ValueError, TypeError):
             inputData[col] = val
     input_df = pandas.DataFrame([inputData])
-    prediction = model.predict(input_df)[0]
-    return render_template("index.html", data=inputData, prediction=prediction)
+    pred_knn = int(knn_model.predict(input_df)[0])
+    pred_dt = int(dt_model.predict(input_df)[0])
+    pred_svc = int(svc_model.predict(input_df)[0])
+    pred_mlp = int(mlp_model.predict(input_df)[0])
+    votes = pred_knn + pred_dt + pred_svc + pred_mlp
+    final_prediction = 1 if votes >= 2 else 0
+    model_preds = {
+        "KNN": pred_knn,
+        "Decision Tree": pred_dt,
+        "SVC": pred_svc,
+        "MLP": pred_mlp
+    }
+    return render_template("index.html", data=inputData, prediction=final_prediction, model_preds=model_preds)
+
 
 if __name__ == "__main__":
     app.run(host=HOST, port=PORT)

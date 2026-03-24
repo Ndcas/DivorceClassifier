@@ -88,6 +88,16 @@ function loadHistory() {
         const prediction = entry.prediction;
         const badgeClass = prediction === 1 ? 'badge-danger' : 'badge-success';
         const badgeText = prediction === 1 ? 'Ly hôn' : 'Không ly hôn';
+
+        let tooltip = "";
+        if (entry.modelPreds) {
+            const lines = [];
+            for (const [model, pred] of Object.entries(entry.modelPreds)) {
+                lines.push(`${model}: ${pred === 1 ? 'Ly hôn' : 'Không ly hôn'}`);
+            }
+            tooltip = `title="${lines.join(' | ')}"`;
+        }
+
         const d = entry.data;
         tr.innerHTML = `
             <td>${index + 1}</td>
@@ -113,41 +123,57 @@ function loadHistory() {
             <td>${translateValue('pre_marital_cohabitation', d.pre_marital_cohabitation)}</td>
             <td>${translateValue('domestic_violence_history', d.domestic_violence_history)}</td>
             <td>${d.trust_score}</td>
-            <td><span class="badge ${badgeClass}">${badgeText}</span></td>
+            <td><span class="badge ${badgeClass}" ${tooltip} style="cursor:help;">${badgeText}</span></td>
         `;
         tbody.appendChild(tr);
     });
 }
 
-function savePrediction(data, prediction) {
+function savePrediction(data, prediction, modelPreds) {
     const history = JSON.parse(sessionStorage.getItem('predictionHistory') || '[]');
     const now = new Date();
     const timestamp = now.toLocaleString('vi-VN');
     history.push({
         timestamp: timestamp,
         data: data,
-        prediction: prediction
+        prediction: prediction,
+        modelPreds: modelPreds
     });
 
     sessionStorage.setItem('predictionHistory', JSON.stringify(history));
 }
 
-function showModal(prediction) {
+function showModal(prediction, modelPreds) {
     const modal = document.getElementById('resultModal');
     const icon = document.getElementById('resultIcon');
     const title = document.getElementById('resultTitle');
     const message = document.getElementById('resultMessage');
+    const modelDetails = document.getElementById('modelDetails');
+
     if (prediction === 1) {
         icon.textContent = '💔';
         title.textContent = 'Dự đoán: Ly Hôn';
         title.style.color = 'var(--accent-secondary)';
-        message.textContent = 'Dựa trên dữ liệu bạn cung cấp, mô hình dự đoán có khả năng ly hôn.';
+        message.textContent = 'Dựa trên dữ liệu bạn cung cấp, mô hình đa số dự đoán có khả năng ly hôn.';
     } else {
         icon.textContent = '💚';
         title.textContent = 'Dự đoán: Không Ly Hôn';
         title.style.color = 'var(--accent-success)';
-        message.textContent = 'Dựa trên dữ liệu bạn cung cấp, mô hình dự đoán không có khả năng ly hôn.';
+        message.textContent = 'Dựa trên dữ liệu bạn cung cấp, mô hình đa số dự đoán không có khả năng ly hôn.';
     }
+
+    if (modelPreds && modelDetails) {
+        let detailsHtml = '<strong>Kết quả dự đoán chi tiết:</strong><br/>';
+        for (const [model, pred] of Object.entries(modelPreds)) {
+            const predText = pred === 1 ? '<span style="color:var(--accent-secondary); font-weight:600;">Ly hôn</span>' : '<span style="color:var(--accent-success); font-weight:600;">Không ly hôn</span>';
+            detailsHtml += `&bull; <strong>${model}:</strong> ${predText}<br/>`;
+        }
+        modelDetails.innerHTML = detailsHtml;
+        modelDetails.style.display = 'block';
+    } else if (modelDetails) {
+        modelDetails.style.display = 'none';
+    }
+
     modal.classList.add('active');
 }
 
