@@ -1,12 +1,10 @@
 import os
-import statistics
 import joblib
 import pandas
 from dotenv import load_dotenv
 from sklearn.compose import ColumnTransformer
-from sklearn.ensemble import VotingClassifier
-from sklearn.metrics import accuracy_score
-from sklearn.model_selection import cross_val_score, train_test_split, GridSearchCV
+from sklearn.ensemble import ExtraTreesClassifier
+from sklearn.model_selection import GridSearchCV
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.neural_network import MLPClassifier
 from sklearn.pipeline import Pipeline
@@ -58,11 +56,18 @@ def getKNeighborsClassifier():
         ("preprocessor", preprocessor),
         ("classifier", KNeighborsClassifier())
     ])
-    param_grid = {'classifier__n_neighbors': list(range(1, 59, 2))}
+    param_grid = {
+        "classifier__n_neighbors": [2 * i + 1 for i in range(10)],
+        "classifier__weights": ["uniform", "distance"],
+        "classifier__metric": ["cityblock", "cosine", "euclidean", "l1", "l2", "manhattan", "nan_euclidean"]
+    }
     grid = GridSearchCV(pipeline, param_grid, cv=K_FOLDS, scoring="f1", n_jobs=-1)
     grid.fit(features, labels)
-    best_k = grid.best_params_['classifier__n_neighbors']
-    return KNeighborsClassifier(n_neighbors=best_k)
+    n_neighbors = grid.best_params_["classifier__n_neighbors"]
+    weights = grid.best_params_["classifier__weights"]
+    metric = grid.best_params_["classifier__metric"]
+    print(f"n_neighbors: {n_neighbors}, weights: {weights}, metric: {metric}, F1: {grid.best_score_}")
+    return KNeighborsClassifier(n_neighbors=n_neighbors, weights=weights, metric=metric)
 
 
 def getDecisionTreeClassifier():
@@ -70,62 +75,90 @@ def getDecisionTreeClassifier():
         ("preprocessor", preprocessor),
         ("classifier", DecisionTreeClassifier(random_state=1))
     ])
-    param_grid = {'classifier__max_depth': list(range(1, 31))}
+    param_grid = {
+        "classifier__criterion": ["gini", "entropy", "log_loss"],
+        "classifier__splitter": ["random", "best"],
+        "classifier__max_depth": list(range(1, 31))
+    }
     grid = GridSearchCV(pipeline, param_grid, cv=K_FOLDS, scoring="f1", n_jobs=-1)
     grid.fit(features, labels)
-    best_depth = grid.best_params_['classifier__max_depth']
-    return DecisionTreeClassifier(max_depth=best_depth, random_state=1)
+    criterion = grid.best_params_["classifier__criterion"]
+    splitter = grid.best_params_["classifier__splitter"]
+    max_depth = grid.best_params_["classifier__max_depth"]
+    print(f"criterion: {criterion}, splitter: {splitter}, max_depth: {max_depth}, F1: {grid.best_score_}")
+    return DecisionTreeClassifier(criterion=criterion, splitter=splitter, max_depth=max_depth, random_state=1)
 
 
 def getSVC():
     pipeline = Pipeline(steps=[
         ("preprocessor", preprocessor),
-        ("classifier", SVC())
+        ("classifier", SVC(random_state=1))
     ])
-    param_grid = {'classifier__C': [0.001 * pow(2, i) for i in range(30)]}
+    param_grid = {
+        "classifier__C": [pow(10, i) for i in range(-1, 8)],
+        "classifier__kernel": ["linear", "poly", "rbf", "sigmoid"],
+        "classifier__gamma": ["scale", "auto"]
+    }
     grid = GridSearchCV(pipeline, param_grid, cv=K_FOLDS, scoring="f1", n_jobs=-1)
     grid.fit(features, labels)
-    best_c = grid.best_params_['classifier__C']
-    return SVC(C=best_c)
+    C = grid.best_params_["classifier__C"]
+    kernel = grid.best_params_["classifier__kernel"]
+    gamma = grid.best_params_["classifier__gamma"]
+    print(f"C: {C}, kernel: {kernel}, gamma: {gamma}, F1: {grid.best_score_}")
+    return SVC(C=C, kernel=kernel, gamma=gamma, random_state=1)
 
 
 def getMLPCLassifier():
+    pipeline = Pipeline(steps=[
+        ("preprocessor", preprocessor),
+        ("classifier", MLPClassifier(random_state=1, max_iter=300, early_stopping=True))
+    ])
+    param_grid = {
+        "classifier__hidden_layer_sizes": [(32, 16, 8), (16, 8, 4), (32, 16), (16, 8), (32), (16)],
+        "classifier__activation": ["identity", "logistic", "tanh", "relu"],
+        "classifier__solver": ["sgd", "adam"],
+        "classifier__learning_rate": ["constant", "invscaling", "adaptive"]
+    }
+    grid = GridSearchCV(pipeline, param_grid, cv=K_FOLDS, scoring="f1", n_jobs=-1)
+    grid.fit(features, labels)
+    hidden_layer_sizes = grid.best_params_["classifier__hidden_layer_sizes"]
+    activation = grid.best_params_["classifier__activation"]
+    solver = grid.best_params_["classifier__solver"]
+    learning_rate = grid.best_params_["classifier__learning_rate"]
+    print(
+        f"hidden_layer_sizes: {hidden_layer_sizes}, activation: {activation}, solver: {solver}, learning_rate: {learning_rate}, F1: {grid.best_score_}")
     return MLPClassifier(
-        hidden_layer_sizes=(128, 64, 32),
+        hidden_layer_sizes=hidden_layer_sizes,
+        activation=activation,
+        solver=solver,
+        learning_rate=learning_rate,
         random_state=1,
         max_iter=300,
         early_stopping=True
     )
 
 
-def train():
+def trainModel(classifier, name, fileName):
     os.makedirs(os.path.dirname(MODEL_PATH), exist_ok=True)
     model_dir = os.path.dirname(MODEL_PATH)
-    print("Đang lấy mô hình KNN")
-    knn_est = getKNeighborsClassifier()
-    knn_pipeline = Pipeline(steps=[("preprocessor", preprocessor), ("classifier", knn_est)])
-    print("Đang huấn luyện KNN")
-    knn_pipeline.fit(features, labels)
-    joblib.dump(knn_pipeline, os.path.join(model_dir, "knn.pkl"))
-    print("Đang lấy mô hình Decision Tree")
-    dt_est = getDecisionTreeClassifier()
-    dt_pipeline = Pipeline(steps=[("preprocessor", preprocessor), ("classifier", dt_est)])
-    print("Đang huấn luyện Decision Tree")
-    dt_pipeline.fit(features, labels)
-    joblib.dump(dt_pipeline, os.path.join(model_dir, "dt.pkl"))
-    print("Đang lấy mô hình SVC")
-    sv_est = getSVC()
-    sv_pipeline = Pipeline(steps=[("preprocessor", preprocessor), ("classifier", sv_est)])
-    print("Đang huấn luyện SVC")
-    sv_pipeline.fit(features, labels)
-    joblib.dump(sv_pipeline, os.path.join(model_dir, "svc.pkl"))
-    print("Đang lấy mô hình MLP")
-    mlp_est = getMLPCLassifier()
-    mlp_pipeline = Pipeline(steps=[("preprocessor", preprocessor), ("classifier", mlp_est)])
-    print("Đang huấn luyện MLP")
-    mlp_pipeline.fit(features, labels)
-    joblib.dump(mlp_pipeline, os.path.join(model_dir, "mlp.pkl"))
-    print("Đã huấn luyện và lưu tất cả các mô hình!")
+    pipeline = Pipeline(steps=[
+        ("preprocessor", preprocessor),
+        ("classifier", classifier)]
+    )
+    pipeline.fit(features, labels)
+    joblib.dump(pipeline, os.path.join(model_dir, fileName))
+
+
+def train():
+    print("\nĐang huấn luyện KNN")
+    trainModel(getKNeighborsClassifier(), "KNN", "knn.pkl")
+    print("\nĐang huấn luyện Decision Tree")
+    trainModel(getDecisionTreeClassifier(), "Decision Tree", "dt.pkl")
+    print("\nĐang huấn luyện SVC")
+    trainModel(getSVC(), "SVC", "svc.pkl")
+    print("\nĐang huấn luyện MLP")
+    trainModel(getMLPCLassifier(), "MLP", "mlp.pkl")
+    print("\nĐã huấn luyện và lưu tất cả các mô hình!")
 
 
 if __name__ == "__main__":
