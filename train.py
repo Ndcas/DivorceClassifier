@@ -3,13 +3,13 @@ import joblib
 import pandas
 from dotenv import load_dotenv
 from sklearn.compose import ColumnTransformer
-from sklearn.ensemble import ExtraTreesClassifier
+from sklearn.feature_selection import SelectFromModel
 from sklearn.model_selection import GridSearchCV
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.neural_network import MLPClassifier
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
-from sklearn.svm import SVC
+from sklearn.svm import SVC, LinearSVC
 from sklearn.tree import DecisionTreeClassifier
 
 load_dotenv()
@@ -17,6 +17,7 @@ load_dotenv()
 DATA_PATH = os.getenv("DATA_PATH")
 MODEL_PATH = os.getenv("MODEL_PATH")
 K_FOLDS = int(os.getenv("K_FOLDS"))
+SELECTOR_C = float(os.getenv("SELECTOR_C"))
 
 dataFrame = pandas.read_csv(DATA_PATH)
 
@@ -54,6 +55,7 @@ preprocessor = ColumnTransformer(transformers=[
 def getKNeighborsClassifier():
     pipeline = Pipeline(steps=[
         ("preprocessor", preprocessor),
+        ("feature_selector", SelectFromModel(LinearSVC(C=SELECTOR_C, penalty="l1", random_state=1))),
         ("classifier", KNeighborsClassifier())
     ])
     param_grid = {
@@ -67,12 +69,19 @@ def getKNeighborsClassifier():
     weights = grid.best_params_["classifier__weights"]
     metric = grid.best_params_["classifier__metric"]
     print(f"n_neighbors: {n_neighbors}, weights: {weights}, metric: {metric}, F1: {grid.best_score_}")
-    return KNeighborsClassifier(n_neighbors=n_neighbors, weights=weights, metric=metric)
+    model = Pipeline(steps=[
+        ("preprocessor", preprocessor),
+        ("feature_selector", SelectFromModel(LinearSVC(C=SELECTOR_C, penalty="l1", random_state=1))),
+        ("classifier", KNeighborsClassifier(n_neighbors=n_neighbors, weights=weights, metric=metric))
+    ])
+    model.fit(features, labels)
+    return model
 
 
 def getDecisionTreeClassifier():
     pipeline = Pipeline(steps=[
         ("preprocessor", preprocessor),
+        ("feature_selector", SelectFromModel(LinearSVC(C=SELECTOR_C, penalty="l1", random_state=1))),
         ("classifier", DecisionTreeClassifier(random_state=1))
     ])
     param_grid = {
@@ -86,31 +95,20 @@ def getDecisionTreeClassifier():
     splitter = grid.best_params_["classifier__splitter"]
     max_depth = grid.best_params_["classifier__max_depth"]
     print(f"criterion: {criterion}, splitter: {splitter}, max_depth: {max_depth}, F1: {grid.best_score_}")
-    return DecisionTreeClassifier(criterion=criterion, splitter=splitter, max_depth=max_depth, random_state=1)
-
-
-def getSVC():
-    pipeline = Pipeline(steps=[
+    model = Pipeline(steps=[
         ("preprocessor", preprocessor),
-        ("classifier", SVC(random_state=1))
+        ("feature_selector", SelectFromModel(LinearSVC(C=SELECTOR_C, penalty="l1", random_state=1))),
+        ("classifier",
+         DecisionTreeClassifier(criterion=criterion, splitter=splitter, max_depth=max_depth, random_state=1))
     ])
-    param_grid = {
-        "classifier__C": [pow(10, i) for i in range(-1, 8)],
-        "classifier__kernel": ["linear", "poly", "rbf", "sigmoid"],
-        "classifier__gamma": ["scale", "auto"]
-    }
-    grid = GridSearchCV(pipeline, param_grid, cv=K_FOLDS, scoring="f1", n_jobs=-1)
-    grid.fit(features, labels)
-    C = grid.best_params_["classifier__C"]
-    kernel = grid.best_params_["classifier__kernel"]
-    gamma = grid.best_params_["classifier__gamma"]
-    print(f"C: {C}, kernel: {kernel}, gamma: {gamma}, F1: {grid.best_score_}")
-    return SVC(C=C, kernel=kernel, gamma=gamma, random_state=1)
+    model.fit(features, labels)
+    return model
 
 
 def getMLPCLassifier():
     pipeline = Pipeline(steps=[
         ("preprocessor", preprocessor),
+        ("feature_selector", SelectFromModel(LinearSVC(C=SELECTOR_C, penalty="l1", random_state=1))),
         ("classifier", MLPClassifier(random_state=1, max_iter=300, early_stopping=True))
     ])
     param_grid = {
@@ -127,37 +125,36 @@ def getMLPCLassifier():
     learning_rate = grid.best_params_["classifier__learning_rate"]
     print(
         f"hidden_layer_sizes: {hidden_layer_sizes}, activation: {activation}, solver: {solver}, learning_rate: {learning_rate}, F1: {grid.best_score_}")
-    return MLPClassifier(
-        hidden_layer_sizes=hidden_layer_sizes,
-        activation=activation,
-        solver=solver,
-        learning_rate=learning_rate,
-        random_state=1,
-        max_iter=300,
-        early_stopping=True
-    )
+    model = Pipeline(steps=[
+        ("preprocessor", preprocessor),
+        ("feature_selector", SelectFromModel(LinearSVC(C=SELECTOR_C, penalty="l1", random_state=1))),
+        ("classifier", MLPClassifier(
+            hidden_layer_sizes=hidden_layer_sizes,
+            activation=activation,
+            solver=solver,
+            learning_rate=learning_rate,
+            random_state=1,
+            max_iter=300,
+            early_stopping=True
+        ))
+    ])
+    model.fit(features, labels)
+    return model
 
 
-def trainModel(classifier, name, fileName):
+def trainModel(classifier, fileName):
     os.makedirs(os.path.dirname(MODEL_PATH), exist_ok=True)
     model_dir = os.path.dirname(MODEL_PATH)
-    pipeline = Pipeline(steps=[
-        ("preprocessor", preprocessor),
-        ("classifier", classifier)]
-    )
-    pipeline.fit(features, labels)
-    joblib.dump(pipeline, os.path.join(model_dir, fileName))
+    joblib.dump(classifier, os.path.join(model_dir, fileName))
 
 
 def train():
     print("\nĐang huấn luyện KNN")
-    trainModel(getKNeighborsClassifier(), "KNN", "knn.pkl")
+    trainModel(getKNeighborsClassifier(), "knn.pkl")
     print("\nĐang huấn luyện Decision Tree")
-    trainModel(getDecisionTreeClassifier(), "Decision Tree", "dt.pkl")
-    print("\nĐang huấn luyện SVC")
-    trainModel(getSVC(), "SVC", "svc.pkl")
+    trainModel(getDecisionTreeClassifier(), "dt.pkl")
     print("\nĐang huấn luyện MLP")
-    trainModel(getMLPCLassifier(), "MLP", "mlp.pkl")
+    trainModel(getMLPCLassifier(), "mlp.pkl")
     print("\nĐã huấn luyện và lưu tất cả các mô hình!")
 
 
