@@ -4,7 +4,8 @@ import pandas
 from dotenv import load_dotenv
 from sklearn.compose import ColumnTransformer
 from sklearn.feature_selection import SelectFromModel
-from sklearn.model_selection import GridSearchCV
+from sklearn.metrics import accuracy_score
+from sklearn.model_selection import GridSearchCV, train_test_split
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.neural_network import MLPClassifier
 from sklearn.pipeline import Pipeline
@@ -24,6 +25,8 @@ dataFrame = pandas.read_csv(DATA_PATH)
 features = dataFrame.drop("divorced", axis=1)
 
 labels = dataFrame["divorced"]
+
+features, featuresT, labels, labelsT = train_test_split(features, labels, random_state=1)
 
 numericalFeatures = [
     "age_at_marriage",
@@ -68,13 +71,15 @@ def getKNeighborsClassifier():
     n_neighbors = grid.best_params_["classifier__n_neighbors"]
     weights = grid.best_params_["classifier__weights"]
     metric = grid.best_params_["classifier__metric"]
-    print(f"n_neighbors: {n_neighbors}, weights: {weights}, metric: {metric}, F1: {grid.best_score_}")
     model = Pipeline(steps=[
         ("preprocessor", preprocessor),
         ("feature_selector", SelectFromModel(LinearSVC(C=SELECTOR_C, penalty="l1", random_state=1))),
         ("classifier", KNeighborsClassifier(n_neighbors=n_neighbors, weights=weights, metric=metric))
     ])
     model.fit(features, labels)
+    accuracy = accuracy_score(labelsT, model.predict(featuresT))
+    print(
+        f"n_neighbors: {n_neighbors}, weights: {weights}, metric: {metric}, F1: {grid.best_score_:.4f}, Acc: {(accuracy * 100):.2f}")
     return model
 
 
@@ -94,7 +99,6 @@ def getDecisionTreeClassifier():
     criterion = grid.best_params_["classifier__criterion"]
     splitter = grid.best_params_["classifier__splitter"]
     max_depth = grid.best_params_["classifier__max_depth"]
-    print(f"criterion: {criterion}, splitter: {splitter}, max_depth: {max_depth}, F1: {grid.best_score_}")
     model = Pipeline(steps=[
         ("preprocessor", preprocessor),
         ("feature_selector", SelectFromModel(LinearSVC(C=SELECTOR_C, penalty="l1", random_state=1))),
@@ -102,6 +106,9 @@ def getDecisionTreeClassifier():
          DecisionTreeClassifier(criterion=criterion, splitter=splitter, max_depth=max_depth, random_state=1))
     ])
     model.fit(features, labels)
+    accuracy = accuracy_score(labelsT, model.predict(featuresT))
+    print(
+        f"criterion: {criterion}, splitter: {splitter}, max_depth: {max_depth}, F1: {grid.best_score_:.4f}, Acc: {(accuracy * 100):.2f}")
     return model
 
 
@@ -123,8 +130,6 @@ def getMLPCLassifier():
     activation = grid.best_params_["classifier__activation"]
     solver = grid.best_params_["classifier__solver"]
     learning_rate = grid.best_params_["classifier__learning_rate"]
-    print(
-        f"hidden_layer_sizes: {hidden_layer_sizes}, activation: {activation}, solver: {solver}, learning_rate: {learning_rate}, F1: {grid.best_score_}")
     model = Pipeline(steps=[
         ("preprocessor", preprocessor),
         ("feature_selector", SelectFromModel(LinearSVC(C=SELECTOR_C, penalty="l1", random_state=1))),
@@ -139,6 +144,9 @@ def getMLPCLassifier():
         ))
     ])
     model.fit(features, labels)
+    accuracy = accuracy_score(labelsT, model.predict(featuresT))
+    print(
+        f"hidden_layer_sizes: {hidden_layer_sizes}, activation: {activation}, solver: {solver}, learning_rate: {learning_rate}, F1: {grid.best_score_:.4f}, Acc: {(accuracy * 100):.2f}")
     return model
 
 
