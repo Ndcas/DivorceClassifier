@@ -1,3 +1,4 @@
+import datetime
 import os
 import joblib
 import pandas
@@ -62,25 +63,18 @@ def getKNeighborsClassifier():
         ("classifier", KNeighborsClassifier())
     ])
     param_grid = {
-        "classifier__n_neighbors": [2 * i + 1 for i in range(10)],
+        "classifier__n_neighbors": [2 * i + 1 for i in range(30)],
         "classifier__weights": ["uniform", "distance"],
-        "classifier__metric": ["cityblock", "cosine", "euclidean", "l1", "l2", "manhattan", "nan_euclidean"]
+        "classifier__metric": ["euclidean", "manhattan"]
     }
     grid = GridSearchCV(pipeline, param_grid, cv=K_FOLDS, scoring="f1", n_jobs=-1)
     grid.fit(features, labels)
-    n_neighbors = grid.best_params_["classifier__n_neighbors"]
-    weights = grid.best_params_["classifier__weights"]
-    metric = grid.best_params_["classifier__metric"]
-    model = Pipeline(steps=[
-        ("preprocessor", preprocessor),
-        ("feature_selector", SelectFromModel(LinearSVC(C=SELECTOR_C, penalty="l1", random_state=1))),
-        ("classifier", KNeighborsClassifier(n_neighbors=n_neighbors, weights=weights, metric=metric))
-    ])
-    model.fit(features, labels)
-    accuracy = accuracy_score(labelsT, model.predict(featuresT))
-    print(
-        f"n_neighbors: {n_neighbors}, weights: {weights}, metric: {metric}, F1: {grid.best_score_:.4f}, Acc: {(accuracy * 100):.2f}")
-    return model
+    accuracy = accuracy_score(labelsT, grid.best_estimator_.predict(featuresT))
+    for param in grid.best_params_:
+        print(f"{param}: {grid.best_params_[param]}")
+    print(f"F1: {grid.best_score_:4f}")
+    print(f"Accuracy: {accuracy:4f}")
+    return grid.best_estimator_
 
 
 def getDecisionTreeClassifier():
@@ -96,20 +90,12 @@ def getDecisionTreeClassifier():
     }
     grid = GridSearchCV(pipeline, param_grid, cv=K_FOLDS, scoring="f1", n_jobs=-1)
     grid.fit(features, labels)
-    criterion = grid.best_params_["classifier__criterion"]
-    splitter = grid.best_params_["classifier__splitter"]
-    max_depth = grid.best_params_["classifier__max_depth"]
-    model = Pipeline(steps=[
-        ("preprocessor", preprocessor),
-        ("feature_selector", SelectFromModel(LinearSVC(C=SELECTOR_C, penalty="l1", random_state=1))),
-        ("classifier",
-         DecisionTreeClassifier(criterion=criterion, splitter=splitter, max_depth=max_depth, random_state=1))
-    ])
-    model.fit(features, labels)
-    accuracy = accuracy_score(labelsT, model.predict(featuresT))
-    print(
-        f"criterion: {criterion}, splitter: {splitter}, max_depth: {max_depth}, F1: {grid.best_score_:.4f}, Acc: {(accuracy * 100):.2f}")
-    return model
+    accuracy = accuracy_score(labelsT, grid.best_estimator_.predict(featuresT))
+    for param in grid.best_params_:
+        print(f"{param}: {grid.best_params_[param]}")
+    print(f"F1: {grid.best_score_:4f}")
+    print(f"Accuracy: {accuracy:4f}")
+    return grid.best_estimator_
 
 
 def getMLPCLassifier():
@@ -126,28 +112,12 @@ def getMLPCLassifier():
     }
     grid = GridSearchCV(pipeline, param_grid, cv=K_FOLDS, scoring="f1", n_jobs=-1)
     grid.fit(features, labels)
-    hidden_layer_sizes = grid.best_params_["classifier__hidden_layer_sizes"]
-    activation = grid.best_params_["classifier__activation"]
-    solver = grid.best_params_["classifier__solver"]
-    learning_rate = grid.best_params_["classifier__learning_rate"]
-    model = Pipeline(steps=[
-        ("preprocessor", preprocessor),
-        ("feature_selector", SelectFromModel(LinearSVC(C=SELECTOR_C, penalty="l1", random_state=1))),
-        ("classifier", MLPClassifier(
-            hidden_layer_sizes=hidden_layer_sizes,
-            activation=activation,
-            solver=solver,
-            learning_rate=learning_rate,
-            random_state=1,
-            max_iter=300,
-            early_stopping=True
-        ))
-    ])
-    model.fit(features, labels)
-    accuracy = accuracy_score(labelsT, model.predict(featuresT))
-    print(
-        f"hidden_layer_sizes: {hidden_layer_sizes}, activation: {activation}, solver: {solver}, learning_rate: {learning_rate}, F1: {grid.best_score_:.4f}, Acc: {(accuracy * 100):.2f}")
-    return model
+    accuracy = accuracy_score(labelsT, grid.best_estimator_.predict(featuresT))
+    for param in grid.best_params_:
+        print(f"{param}: {grid.best_params_[param]}")
+    print(f"F1: {grid.best_score_:4f}")
+    print(f"Accuracy: {accuracy:4f}")
+    return grid.best_estimator_
 
 
 def trainModel(classifier, fileName):
@@ -157,13 +127,15 @@ def trainModel(classifier, fileName):
 
 
 def train():
+    start_time = datetime.datetime.now()
+    print(f"Bắt đầu huấn luyện các mô hình lúc {start_time}")
     print("\nĐang huấn luyện KNN")
     trainModel(getKNeighborsClassifier(), "knn.pkl")
     print("\nĐang huấn luyện Decision Tree")
     trainModel(getDecisionTreeClassifier(), "dt.pkl")
     print("\nĐang huấn luyện MLP")
     trainModel(getMLPCLassifier(), "mlp.pkl")
-    print("\nĐã huấn luyện và lưu tất cả các mô hình!")
+    print(f"\nĐã huấn luyện và lưu tất cả các mô hình! trong {datetime.datetime.now() - start_time}")
 
 
 if __name__ == "__main__":
